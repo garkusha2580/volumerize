@@ -5,7 +5,7 @@ set -o errexit
 readonly DOCKER_SCRIPT_DIR=$VOLUMERIZE_HOME
 
 DOCKER_CONTAINERS=""
-
+RANCHER_SERVICES=""
 cat > ${VOLUMERIZE_SCRIPT_DIR}/stopContainers <<_EOF_
 #!/bin/bash
 
@@ -22,6 +22,17 @@ _EOF_
     # preprend (to insert containers in reverse order in start script)
     echo -e "docker start ${container}\n$(cat ${VOLUMERIZE_SCRIPT_DIR}/startContainers)" > ${VOLUMERIZE_SCRIPT_DIR}/startContainers
   done
+  echo -e "#!/bin/bash\n\nset -o errexit\n$(cat ${VOLUMERIZE_SCRIPT_DIR}/startContainers)" > ${VOLUMERIZE_SCRIPT_DIR}/startContainers
+elif
+[ -n "${VOLUMERIZE_SERVICES}" ]; then
+  RANCHER_SERVICES=${VOLUMERIZE_SERVICES}
+  for service in $RANCHER_SERVICES
+  do
+    cat >> ${VOLUMERIZE_SCRIPT_DIR}/stopServices <<_EOF_
+rancher stop ${service}
+_EOF_
+    # preprend (to insert containers in reverse order in start script)
+    echo -e "rancher start ${service}\n$(cat ${VOLUMERIZE_SCRIPT_DIR}/startServices)" > ${VOLUMERIZE_SCRIPT_DIR}/startServices
+  done
+  echo -e "#!/bin/bash\n\nset -o errexit\n$(cat ${VOLUMERIZE_SCRIPT_DIR}/startServices)" > ${VOLUMERIZE_SCRIPT_DIR}/startServices
 fi
-
-echo -e "#!/bin/bash\n\nset -o errexit\n$(cat ${VOLUMERIZE_SCRIPT_DIR}/startContainers)" > ${VOLUMERIZE_SCRIPT_DIR}/startContainers

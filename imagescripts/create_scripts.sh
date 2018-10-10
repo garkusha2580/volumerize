@@ -8,6 +8,9 @@ source $CUR_DIR/base.sh
 
 readonly PARAMETER_PROXY='$@'
 
+STOP_SCRIPT=""
+START_SCRIPT=""
+
 cat > ${VOLUMERIZE_SCRIPT_DIR}/prepoststrategy << '_EOF_'
 #!/bin/bash
 
@@ -39,15 +42,23 @@ if [ -d "$strategy_path" ]; then
 fi
 _EOF_
 
+if [ -n "${VOLUMERIZE_CONTAINERS}" ]; then
+   STOP_SCRIPT="stopContainers"
+   START_SCRIPT="startContainers"
+elif [ -n "${VOLUMERIZE_SERVICES}" ]; then
+   STOP_SCRIPT="stopServices"
+   START_SCRIPT="startServices"
+fi
+
 cat > ${VOLUMERIZE_SCRIPT_DIR}/backup <<_EOF_
 #!/bin/bash
 
 set -o errexit
 
 ${VOLUMERIZE_SCRIPT_DIR}/prepoststrategy preAction backup
-source ${VOLUMERIZE_SCRIPT_DIR}/stopContainers
+source ${VOLUMERIZE_SCRIPT_DIR}/${STOP_SCRIPT}
 ${DUPLICITY_COMMAND} ${PARAMETER_PROXY} ${DUPLICITY_OPTIONS} ${VOLUMERIZE_INCUDES} ${VOLUMERIZE_SOURCE} ${VOLUMERIZE_TARGET} || true
-source ${VOLUMERIZE_SCRIPT_DIR}/startContainers
+source ${VOLUMERIZE_SCRIPT_DIR}/${START_SCRIPT}
 PREPOSTSTRATEGY=/postexecute/backup
 ${VOLUMERIZE_SCRIPT_DIR}/prepoststrategy postAction backup
 _EOF_
@@ -58,9 +69,9 @@ cat > ${VOLUMERIZE_SCRIPT_DIR}/backupIncremental <<_EOF_
 set -o errexit
 
 ${VOLUMERIZE_SCRIPT_DIR}/prepoststrategy preAction backup
-source ${VOLUMERIZE_SCRIPT_DIR}/stopContainers
+source ${VOLUMERIZE_SCRIPT_DIR}/${STOP_SCRIPT}
 ${DUPLICITY_COMMAND} incremental ${PARAMETER_PROXY} ${DUPLICITY_OPTIONS} ${VOLUMERIZE_INCUDES} ${VOLUMERIZE_SOURCE} ${VOLUMERIZE_TARGET} || true
-source ${VOLUMERIZE_SCRIPT_DIR}/startContainers
+source ${VOLUMERIZE_SCRIPT_DIR}/${START_SCRIPT}
 ${VOLUMERIZE_SCRIPT_DIR}/prepoststrategy postAction backup
 _EOF_
 
@@ -70,9 +81,9 @@ cat > ${VOLUMERIZE_SCRIPT_DIR}/backupFull <<_EOF_
 set -o errexit
 
 ${VOLUMERIZE_SCRIPT_DIR}/prepoststrategy preAction backup
-source ${VOLUMERIZE_SCRIPT_DIR}/stopContainers
+source ${VOLUMERIZE_SCRIPT_DIR}/${STOP_SCRIPT}
 ${DUPLICITY_COMMAND} full ${PARAMETER_PROXY} ${DUPLICITY_OPTIONS} ${VOLUMERIZE_INCUDES} ${VOLUMERIZE_SOURCE} ${VOLUMERIZE_TARGET} || true
-source ${VOLUMERIZE_SCRIPT_DIR}/startContainers
+source ${VOLUMERIZE_SCRIPT_DIR}/${START_SCRIPT}
 ${VOLUMERIZE_SCRIPT_DIR}/prepoststrategy postAction backup
 _EOF_
 
@@ -82,9 +93,9 @@ cat > ${VOLUMERIZE_SCRIPT_DIR}/restore <<_EOF_
 set -o errexit
 
 ${VOLUMERIZE_SCRIPT_DIR}/prepoststrategy preAction restore
-source ${VOLUMERIZE_SCRIPT_DIR}/stopContainers
+source ${VOLUMERIZE_SCRIPT_DIR}/${STOP_SCRIPT}
 ${DUPLICITY_COMMAND} restore --force ${PARAMETER_PROXY} ${DUPLICITY_OPTIONS} ${VOLUMERIZE_INCUDES} ${VOLUMERIZE_TARGET} ${VOLUMERIZE_SOURCE} || true
-source ${VOLUMERIZE_SCRIPT_DIR}/startContainers
+source ${VOLUMERIZE_SCRIPT_DIR}/${START_SCRIPT}
 ${VOLUMERIZE_SCRIPT_DIR}/prepoststrategy postAction restore
 _EOF_
 

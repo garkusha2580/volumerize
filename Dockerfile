@@ -1,5 +1,5 @@
 FROM blacklabelops/alpine:3.8
-MAINTAINER Steffen Bleul <sbl@blacklabelops.com>
+MAINTAINER Garkusha Vlad <garkusha2580@gmail.com>
 
 ARG JOBBER_VERSION=1.1
 ARG DOCKER_VERSION=1.12.2

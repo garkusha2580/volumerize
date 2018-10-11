@@ -136,8 +136,6 @@ ENV VOLUMERIZE_HOME=/etc/volumerize \
     GOOGLE_DRIVE_SETTINGS=/credentials/cred.file \
     GOOGLE_DRIVE_CREDENTIAL_FILE=/credentials/googledrive.cred \
     GPG_TTY=/dev/console
-#RUN mkdir -p /root/.rancher
-#COPY configtemplate/rancher-cli.json /root/.rancher/
 USER root
 WORKDIR /etc/volumerize
 VOLUME ["/volumerize-cache"]

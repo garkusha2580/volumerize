@@ -84,3 +84,5 @@ _EOF_
 fi
 
 cat ${configfile}
+419321E707D403D1B51C
+tL9pzkYdAGvKtJ3GShfhmcCdvqMRSB2trS2S2nNW

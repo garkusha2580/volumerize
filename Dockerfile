@@ -6,6 +6,7 @@ ARG DOCKER_VERSION=1.12.2
 ARG DUPLICITY_VERSION=0.7.18.1
 ARG DUPLICITY_SERIES=0.7
 
+RUN mkdir /root/.rancher
 RUN apk upgrade --update && \
     apk add \
       tzdata \

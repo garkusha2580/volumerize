@@ -8,15 +8,23 @@ source $CUR_DIR/base.sh
 
 readonly JOBBER_PARAMETER_PROXY='$@'
 
+if [ -n "${VOLUMERIZE_CONTAINERS}" ]; then
+   STOP_SCRIPT="stopContainers"
+   START_SCRIPT="startContainers"
+elif [ -n "${VOLUMERIZE_SERVICES}" ]; then
+   STOP_SCRIPT="stopServices"
+   START_SCRIPT="startServices"
+fi
+
 cat > ${JOBBER_SCRIPT_DIR}/periodicBackup <<_EOF_
 #!/bin/bash
 
 set -o errexit
 
 ${VOLUMERIZE_SCRIPT_DIR}/prepoststrategy preAction backup
-source ${VOLUMERIZE_SCRIPT_DIR}/stopContainers
+source ${VOLUMERIZE_SCRIPT_DIR}/${STOP_SCRIPT}
 ${DUPLICITY_COMMAND} ${JOBBER_PARAMETER_PROXY} ${DUPLICITY_MODE} ${DUPLICITY_OPTIONS} ${VOLUMERIZE_INCUDES} ${VOLUMERIZE_SOURCE} ${VOLUMERIZE_TARGET}
-source ${VOLUMERIZE_SCRIPT_DIR}/startContainers
+source ${VOLUMERIZE_SCRIPT_DIR}/${START_SCRIPT}
 ${VOLUMERIZE_SCRIPT_DIR}/prepoststrategy postAction backup
 _EOF_
 

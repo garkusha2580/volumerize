@@ -6,9 +6,6 @@ readonly DOCKER_SCRIPT_DIR=$VOLUMERIZE_HOME
 
 DOCKER_CONTAINERS=""
 RANCHER_SERVICES=""
-RANCHER_URL=""
-RANCHER_ACCESS_KEY=""
-RANCHER_ACCESS_SECRET=""
 
 cat > ${VOLUMERIZE_SCRIPT_DIR}/stopContainers <<_EOF_
 #!/bin/bash
@@ -45,9 +42,9 @@ if [ -n "${RANCHER_URL}" ] && [ -n "${RANCHER_ACCESS_KEY}" ] && [ -n "${RANCHER_
        RANCHER_URL=${RANCHER_URL}
        RANCHER_ACCESS_KEY=${RANCHER_ACCESS_KEY}
        RANCHER_ACCESS_SECRET=${RANCHER_ACCESS_SECRET}
-     mkdir -p "/root/.rancher"
-     touch "/root/.rancher/cli.json"
-     cat > /root/.rancher/cli.json <<_EOF_
-    {"accessKey":"${RANCHER_ACCESS_KEY}","secretKey":"${RANCHER_ACCESS_SECRET}","url":"http://${RANCHER_URL}/v2-beta/schemas"}
+     readonly rancherconfig="/root/.rancher/cli.json"
+     touch ${rancherconfig}
+     cat >> ${rancherconfig} <<_EOF_
+{"accessKey":"${RANCHER_ACCESS_KEY}","secretKey":"${RANCHER_ACCESS_SECRET}","url":"http://${RANCHER_URL}/v2-beta/schemas"}
 _EOF_
 fi

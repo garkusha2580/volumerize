@@ -1,2 +1,0 @@
-{"accessKey":$RANCHER_ACCESS_KEY,"secretKey":$RANCHER_SECRET_KEY,"url":$RANCHER_URL"/schemas"}
-// config for rancher cli

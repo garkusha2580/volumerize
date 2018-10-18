@@ -18,13 +18,13 @@ GPG_KEY_ID=""
 if [ ! -f "/root/.gnupg/pubring.gpg" ]; then
   if [ -n "${VOLUMERIZE_GPG_PRIVATE_KEY}" ]; then
     gpg --allow-secret-key-import --batch --import ${VOLUMERIZE_GPG_PRIVATE_KEY}
-    GPG_KEY_ID=$(gpg2 --list-secret-keys | grep sec | awk 'NR==1{print $2; exit}')
+    GPG_KEY_ID=$(gpg2 --list-secret-keys --keyid-format short| grep sec | awk 'NR==1{print $2; exit}')
     GPG_KEY_ID=$(cut -d "/" -f 2 <<< "$GPG_KEY_ID")
   fi
 
   if [ -n "${VOLUMERIZE_GPG_PUBLIC_KEY}" ]; then
     gpg  --batch --import ${VOLUMERIZE_GPG_PUBLIC_KEY}
-    GPG_KEY_ID=$(gpg2 --list-keys | grep pub | awk 'NR==2{print $2; exit}')
+    GPG_KEY_ID=$(gpg2 --list-keys --keyid-format short| grep pub | awk 'NR==2{print $2; exit}')
     GPG_KEY_ID=$(cut -d "/" -f 2 <<< "$GPG_KEY_ID")
   fi
 fi

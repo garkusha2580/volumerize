@@ -30,10 +30,10 @@ elif
   for service in $RANCHER_SERVICES
   do
     cat >> ${VOLUMERIZE_SCRIPT_DIR}/stopServices <<_EOF_
-rancher stop ${service}
+rancher --wait --wait-state inactive stop ${service}
 _EOF_
     # preprend (to insert containers in reverse order in start script)
-    echo -e "rancher start ${service}\n$(cat ${VOLUMERIZE_SCRIPT_DIR}/startServices)" > ${VOLUMERIZE_SCRIPT_DIR}/startServices
+    echo -e "rancher --wait --wait-state healthy start ${service}\n$(cat ${VOLUMERIZE_SCRIPT_DIR}/startServices)" > ${VOLUMERIZE_SCRIPT_DIR}/startServices
   done
   echo -e "#!/bin/bash\n\nset -o errexit\n$(cat ${VOLUMERIZE_SCRIPT_DIR}/startServices)" > ${VOLUMERIZE_SCRIPT_DIR}/startServices
 fi

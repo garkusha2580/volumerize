@@ -26,15 +26,14 @@ _EOF_
   echo -e "#!/bin/bash\n\nset -o errexit\n$(cat ${VOLUMERIZE_SCRIPT_DIR}/startContainers)" > ${VOLUMERIZE_SCRIPT_DIR}/startContainers
 elif
 [ -n "${VOLUMERIZE_SERVICES}" ]; then
-  RANCHER_SERVICES=${VOLUMERIZE_SERVICES}
-  for service in $RANCHER_SERVICES
-  do
-    cat >> ${VOLUMERIZE_SCRIPT_DIR}/stopServices <<_EOF_
-rancher --wait --wait-state inactive stop ${service}
+  cat >> ${VOLUMERIZE_SCRIPT_DIR}/stopServices <<_EOF_
+rancher --wait --wait-state inactive stop ${VOLUMERIZE_SERVICES}
 _EOF_
-    # preprend (to insert containers in reverse order in start script)
-    echo -e "rancher --wait --wait-state healthy start ${service}\n$(cat ${VOLUMERIZE_SCRIPT_DIR}/startServices)" > ${VOLUMERIZE_SCRIPT_DIR}/startServices
-  done
+for elem in ${VOLUMERIZE_SERVICES}
+do
+    reverse_pos_string="$elem $reverse_pos_string"
+done
+      echo -e "rancher --wait --wait-state healthy start ${reverse_pos_string}\n$(cat ${VOLUMERIZE_SCRIPT_DIR}/startServices)" > ${VOLUMERIZE_SCRIPT_DIR}/startServices
   echo -e "#!/bin/bash\n\nset -o errexit\n$(cat ${VOLUMERIZE_SCRIPT_DIR}/startServices)" > ${VOLUMERIZE_SCRIPT_DIR}/startServices
 fi
 

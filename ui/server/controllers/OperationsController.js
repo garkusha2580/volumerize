@@ -5,10 +5,9 @@ const spawn = require("child_process").spawn;
 const exec = util.promisify(require('child_process').exec);
 let execWrapper = {
 
-       async getBackupsList(res) {
+        getBackupsList(res) {
             let command = ['list'];
-            const {stdout, stderr} = await this.ajaxExec(command);
-            this.sliceBackupList(stdout, res)
+            return this.ajaxExec(command).then((stdout, stderr)=>{return this.sliceBackupList(stdout, res)});
         },
         createBackup(io) {
             let command = ["backup"];
@@ -22,14 +21,13 @@ let execWrapper = {
             this.socketExec(command, io)
         },
         sliceBackupList(data, res) {
-            console.log(data);
             let beginPos = data.search("Num volumes:");
             data = data.slice(beginPos);
             let endPos = data.search("-------------------------");
             data = data.slice(0, endPos);
             let firstPost = data.search(":");
             data = data.slice(firstPost + 3);
-            res.json(data)
+            return data
         },
         socketExec(command, io) {
             let logBody = "";

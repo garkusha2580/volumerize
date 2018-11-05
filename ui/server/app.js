@@ -29,9 +29,9 @@ io.on('connection', (socket) => {
 
 app.use(auth.connect(authPolicy.AuthPolicy));
 app.use(express.static(path.join(__dirname, "../build")));
-app.get("/docker", async  (req, res,) => {
+app.get("/docker",(req, res) => {
     res.set({'Access-Control-Allow-Origin': "*"});
-    await exec.getBackupsList(res)
+    exec.getBackupsList(res).then((data)=>{res.send(data)})
 });
 
 http.listen(process.env.PORT||5001, console.log("Listen server "+process.env.PORT));

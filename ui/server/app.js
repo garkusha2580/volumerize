@@ -10,20 +10,14 @@ io.on('connection', (socket) => {
     console.log("connected");
     socket.on("restore", (time) => {
         exec.restoreBackup({time, io})
-            .then(() => {
-                console.log("restoreComplete");
-                socket.emit("restoreComplete")
-            }).catch(() => {
+            .catch(() => {
             console.log("restoreError");
             socket.emit("restoreError")
         });
     });
     socket.on("backup", (time) => {
         exec.createBackup({time, io})
-            .then(() => {
-                console.log("backupSuccessful");
-                socket.emit("backupSuccessful")
-            }).catch(() => {
+            .catch(() => {
             console.log("backupError");
             socket.emit("backupError")
         })
@@ -33,11 +27,11 @@ io.on('connection', (socket) => {
     })
 });
 
+app.use(auth.connect(authPolicy.AuthPolicy));
 app.use(express.static(path.join(__dirname, "../build")));
-app.get("/docker", (req, res,) => {
+app.get("/docker", async  (req, res,) => {
     res.set({'Access-Control-Allow-Origin': "*"});
-    exec.getBackupsList(res)
+    await exec.getBackupsList(res)
 });
 
-app.use(auth.connect(authPolicy.AuthPolicy));
-http.listen(process.env.PORT||5000, console.log("Listen server "+process.env.PORT));
+http.listen(process.env.PORT||5001, console.log("Listen server "+process.env.PORT));

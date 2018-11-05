@@ -1,49 +1,27 @@
 const _ = require("lodash");
 const moment = require("moment");
 const util = require('util');
-const exec = util.promisify(require("child_process").exec);
-
+const spawn = require("child_process").spawn;
+const exec = util.promisify(require('child_process').exec);
 let execWrapper = {
-        promisifyStream(data) {
-            return new Promise((resolve, reject) => {
-                if (data.stderr!==''){
-                    resolve(data.stderr.toString())
-                    return 0;}
-                //let text = '';
-                resolve(data.stdout)
-            });
-        },
-        promisifySocketStream(data, io) {
-            return new Promise((resolve, reject) => {
-                if (data.stderr!=='') {
-                    io.emit("log",data.stderr).then(()=>{resolve(data.stderr);})
-                    return 0;
-                }
-                io.emit("log", data.stdout.toString()).then(() => {
-                    resolve(data.stdout)
-                });
 
-            });
-        },
-        getBackupsList(res) {
+       async getBackupsList(res) {
             let command = ['list'];
-            this.dockerContainerExec(command).then(data => {
-                this.sliceBackupList(data, res)
-            });
+            const {stdout, stderr} = await this.ajaxExec(command);
+            this.sliceBackupList(stdout, res)
         },
         createBackup(io) {
             let command = ["backup"];
-            return this.dockerContainerExec(command,io)
+            this.socketExec(command, io)
         },
         restoreBackup({time, io}) {
             let command = ['restore', '--dry-run'];
             if (time) {
                 _.concat(command, "-t", moment(time.trim(), "YYYY-MMM-DDTHH:mm:ss").unix());
             }
-            return this.dockerContainerExec(command, io)
+            this.socketExec(command, io)
         },
         sliceBackupList(data, res) {
-            console.log(typeof(data))
             console.log(data);
             let beginPos = data.search("Num volumes:");
             data = data.slice(beginPos);
@@ -53,11 +31,29 @@ let execWrapper = {
             data = data.slice(firstPost + 3);
             res.json(data)
         },
-        dockerContainerExec(command, io) {
-            return exec(command.join(" "))
-                .then((data) => io ? this.promisifySocketStream(data,io) : this.promisifyStream(data)).catch(err => {
-                    io?io.emit("log",err.stdout):console.log(err)
-                })
+        socketExec(command, io) {
+            let logBody = "";
+            let spawnedProcess = spawn(command.join(" "), {stdio: 'pipe'});
+            spawnedProcess.stdout.on("data", data => {
+                logBody += data.toString();
+                io.emit("log", logBody)
+            });
+            spawnedProcess.stderr.on("data", data => {
+                logBody += data.toString();
+                io.emit("log", logBody)
+            });
+            spawnedProcess.on("error", err => {
+                logBody += err.toString();
+                io.emit("log", logBody)
+            });
+            spawnedProcess.on("exit", code => {
+                logBody += "Exit with code: " + code.toString();
+                io.emit("log", logBody)
+            });
+
+        },
+        async ajaxExec(command) {
+            return await exec(command.join(" "))
         }
     }
 ;

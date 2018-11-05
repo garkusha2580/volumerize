@@ -148,16 +148,14 @@ ENV VOLUMERIZE_HOME=/etc/volumerize \
     GOOGLE_DRIVE_CREDENTIAL_FILE=/credentials/googledrive.cred \
     GPG_TTY=/dev/console
 ### APP BLOCK
-RUN node -v
-RUN npm -v
-RUN npm install -g forever
+RUN npm install -g pm2
 RUN mkdir /app
 WORKDIR /app
 COPY ["./ui/package.json","./ui/package-lock.json","./"]
 RUN npm i
 COPY ./ui/ .
 RUN npm run build
-RUN forever start ./server/app.js
+RUN pm2 start ./server/app.js
 #######
 USER root
 WORKDIR /etc/volumerize

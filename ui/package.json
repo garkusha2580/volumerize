@@ -1,0 +1,44 @@
+{
+  "name": "vol-ui",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "axios": "^0.18.0",
+    "express": "^4.16.4",
+    "express-basic-auth": "^1.1.6",
+    "http-auth": "^3.2.3",
+    "lodash": "^4.17.11",
+    "moment": "^2.22.2",
+    "react": "^16.6.0",
+    "react-beforeunload": "^1.0.4",
+    "react-dom": "^16.6.0",
+    "react-scripts": "2.1.0",
+    "semantic-ui-css": "^2.4.1",
+    "socket.io": "^2.1.1",
+    "socket.io-client": "^2.1.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ],
+  "devDependencies": {
+    "css-loader": "^1.0.1",
+    "dotenv": "^6.1.0",
+    "node-sass": "^4.9.4",
+    "semantic-ui-react": "^0.83.0",
+    "style-loader": "^0.23.1",
+    "webpack": "4.19.1",
+    "webpack-cli": "^3.1.2"
+  }
+}

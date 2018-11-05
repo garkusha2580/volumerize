@@ -1,6 +1,14 @@
-FROM blacklabelops/alpine:3.8
+FROM node:8-alpine
 MAINTAINER Garkusha Vlad <garkusha2580@gmail.com>
-
+RUN apk upgrade --update && \
+    apk add \
+      bash && \
+    # Network fix
+    echo 'hosts: files mdns4_minimal [NOTFOUND=return] dns mdns4' >> /etc/nsswitch.conf && \
+    # Clean up
+    rm -rf /var/cache/apk/* && \
+    rm -rf /tmp/* && \
+    rm -rf /var/log/*
 ARG JOBBER_VERSION=1.1
 ARG DOCKER_VERSION=1.12.2
 ARG DUPLICITY_VERSION=0.7.18.1
@@ -64,8 +72,8 @@ RUN curl -fSL "https://code.launchpad.net/duplicity/${DUPLICITY_SERIES}-series/$
 RUN export JOBBER_HOME=/tmp/jobber && \
     export JOBBER_LIB=$JOBBER_HOME/lib && \
     export GOPATH=$JOBBER_LIB && \
-    export CONTAINER_UID=1000 && \
-    export CONTAINER_GID=1000 && \
+    export CONTAINER_UID=1001 && \
+    export CONTAINER_GID=1001 && \
     export CONTAINER_USER=jobber_client && \
     export CONTAINER_GROUP=jobber_client && \
     # Install tools
@@ -139,9 +147,21 @@ ENV VOLUMERIZE_HOME=/etc/volumerize \
     GOOGLE_DRIVE_SETTINGS=/credentials/cred.file \
     GOOGLE_DRIVE_CREDENTIAL_FILE=/credentials/googledrive.cred \
     GPG_TTY=/dev/console
+### APP BLOCK
+RUN node -v
+RUN npm -v
+RUN npm install -g forever
+RUN mkdir /app
+WORKDIR /app
+COPY ["./ui/package.json","./ui/package-lock.json","./"]
+RUN npm i
+COPY ./ui/ .
+RUN npm run build
+RUN forever start ./server/app.js
+#######
 USER root
 WORKDIR /etc/volumerize
 VOLUME ["/volumerize-cache"]
 COPY imagescripts/*.sh /opt/volumerize/
-ENTRYPOINT ["/sbin/tini","--","/opt/volumerize/docker-entrypoint.sh"]
+ENTRYPOINT ["/opt/volumerize/docker-entrypoint.sh"]
 CMD ["volumerize"]

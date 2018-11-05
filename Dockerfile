@@ -155,11 +155,11 @@ COPY ["./ui/package.json","./ui/package-lock.json","./"]
 RUN npm i
 COPY ./ui/ .
 RUN npm run build
-RUN pm2 start ./server/app.js
+
 #######
 USER root
 WORKDIR /etc/volumerize
 VOLUME ["/volumerize-cache"]
 COPY imagescripts/*.sh /opt/volumerize/
 ENTRYPOINT ["/opt/volumerize/docker-entrypoint.sh"]
-CMD ["volumerize"]
+CMD  pm2 start /app/server/app.js||volumerize

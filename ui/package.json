@@ -23,9 +23,9 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "serve": "pm2 /app/server/app.js",
+    "serve": "pm2 start /app/server/app.js",
     "volumerize": "/opt/volumerize/docker-entrypoint.sh volumerize",
-    "startall": "npm-p serve volumerize"
+    "startall": "run-p serve volumerize"
   },
   "eslintConfig": {
     "extends": "react-app"

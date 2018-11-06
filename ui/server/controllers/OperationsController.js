@@ -3,7 +3,6 @@ const moment = require("moment");
 const util = require('util');
 const spawn = require("child_process").spawn;
 const exec = util.promisify(require('child_process').exec);
-const moment = require("moment");
 let execWrapper = {
 
         getBackupsList(res) {
@@ -38,7 +37,7 @@ let execWrapper = {
                 spawn.stdin.write(data.trim())
             });
             spawnedProcess.stdout.on("data", data => {
-                data.toString().find("passphrase") !== -1 ? io.emit("enterPassphrase") : null;
+                data.toString().search("passphrase") !== -1 ? io.emit("enterPassphrase") : null;
                 this.emitLogs(io, data)
             });
             spawnedProcess.stderr.on("data", data => {

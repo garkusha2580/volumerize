@@ -10,36 +10,69 @@ class BackupPanel extends Component {
         this.state = {
             backupList: '',
             backupLogs: "",
-            backupReady:true
+            backupReady: true,
+            sortedData: {column: null, sortedData: null, direction: null},
+            readyList: []
         };
-        this.props.socket.on("backupSuccessful",()=>{
-            this.setState({backupReady:true})
-        })
+
+        this.props.socket.on("backupSuccessful", () => {
+            this.setState({backupReady: true})
+        });
+
+        let tmpReadyList = this.props.backupList ? this.props.backupList.map((elem, index, array) => {
+            let splitedTmp = _.compact(elem.text.trim().split(" "));
+            return {
+                date: `${splitedTmp[3]} ${splitedTmp[2]} ${splitedTmp[5]} ${splitedTmp[4]}`,
+                type: `${splitedTmp[0]}`, volumes: splitedTmp[6]
+            }
+        }) : {key: 0, value: -1, text: "not have data"};
+        this.setState({sortedData: {sortedData: tmpReadyList}})
     }
 
     createBackup = () => {
-        this.setState({backupReady:false});
+        this.setState({backupReady: false});
         this.props.socket.emit("createBackup")
     };
 
-    renderTable = () => {
-        return this.props.backupList ? this.props.backupList.map((elem, index, array) => {
-                let splitedTmp = _.compact(elem.text.trim().split(" "));
+    sort = clickedColumn => () => {
+        const {column, sortedData, direction} = this.state.sortedData;
+        console.log(column);
+        if (column !== clickedColumn) {
+            this.setState({
+                sortedData: {
+                    column: clickedColumn,
+                    sortedData: _.sortBy(sortedData, [clickedColumn]),
+                    direction: 'ascending',
+                }
+            });
+            return
+        }
+        this.setState({
+            sortedData: {
+                column: clickedColumn,
+                sortedData: sortedData.reverse(),
+                direction: direction === 'ascending' ? 'descending' : 'ascending',
+            }
+        })
+    };
+
+    renderTable = (sortedData) => {
+        return this.props.backupList ? sortedData.map((elem, index, array) => {
                 return (
                     <Table.Row>
-                        <Table.Cell>{splitedTmp[3]} {splitedTmp[2]} {splitedTmp[5]} {splitedTmp[4]}</Table.Cell>
-                        <Table.Cell>{splitedTmp[0]} backup</Table.Cell>
-                        <Table.Cell>{splitedTmp[6]}</Table.Cell>
+                        <Table.Cell>{elem.date}</Table.Cell>
+                        <Table.Cell>{elem.type} backup</Table.Cell>
+                        <Table.Cell>{elem.volumes}</Table.Cell>
                     </Table.Row>
                 )
             }) :
             <Table.Row>
                 <Table.Cell>Not have data</Table.Cell>
             </Table.Row>
-
     };
 
     render() {
+        const {column, sortedData, direction} = this.state.sortedData;
         return (
             <Container>
                 <Grid>
@@ -58,16 +91,22 @@ class BackupPanel extends Component {
                             <Form>
                                 <Form.Field>
                                     <label>1. Existing backups</label>
-                                    <Table compact='very'>
+                                    <Table sortable celled fixed compact='very'>
                                         <Table.Header>
                                             <Table.Row>
-                                                <Table.HeaderCell>Date of creating</Table.HeaderCell>
-                                                <Table.HeaderCell>Type of backup</Table.HeaderCell>
-                                                <Table.HeaderCell>Number of added volumes</Table.HeaderCell>
+                                                <Table.HeaderCell onClick={this.sort("date")}
+                                                                  sorted={column === 'date' ? direction : null}>Date of
+                                                    creating</Table.HeaderCell>
+                                                <Table.HeaderCell onClick={this.sort("type")}
+                                                                  sorted={column === 'type' ? direction : null}>Type of
+                                                    backup</Table.HeaderCell>
+                                                <Table.HeaderCell onClick={this.sort("volumes")}
+                                                                  sorted={column === 'volumes' ? direction : null}>Number
+                                                    of added volumes</Table.HeaderCell>
                                             </Table.Row>
                                         </Table.Header>
                                         <Table.Body>
-                                            {this.renderTable()}
+                                            {this.renderTable(sortedData)}
                                         </Table.Body>
                                     </Table>
                                 </Form.Field>

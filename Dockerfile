@@ -160,5 +160,6 @@ USER root
 WORKDIR /etc/volumerize
 VOLUME ["/volumerize-cache"]
 COPY imagescripts/*.sh /opt/volumerize/
+WORKDIR /app/server
 #ENTRYPOINT ["/opt/volumerize/docker-entrypoint.sh"]
 CMD ["npm run startall"]

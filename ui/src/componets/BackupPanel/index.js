@@ -11,35 +11,35 @@ class BackupPanel extends Component {
             backupList: '',
             backupLogs: "",
             backupReady: true,
-            sortedData: {column: null, sortedData: null, direction: null},
-            readyList: []
+            listData: {column: null, sortedData: null, direction: null},
         };
-
         this.props.socket.on("backupSuccessful", () => {
             this.setState({backupReady: true})
         });
-
-        let tmpReadyList = this.props.backupList ? this.props.backupList.map((elem, index, array) => {
-            let splitedTmp = _.compact(elem.text.trim().split(" "));
-            return {
-                date: `${splitedTmp[3]} ${splitedTmp[2]} ${splitedTmp[5]} ${splitedTmp[4]}`,
-                type: `${splitedTmp[0]}`, volumes: splitedTmp[6]
-            }
-        }) : {key: 0, value: -1, text: "not have data"};
-        this.setState({sortedData: {sortedData: tmpReadyList}})
     }
-
+    componentDidMount = () => {
+        if (this.props.backupList) {
+            let tmpReadyList = this.props.backupList.map((elem, index, array) => {
+                let splitedTmp = _.compact(elem.text.trim().split(" "));
+                return {
+                    date: `${splitedTmp[3]} ${splitedTmp[2]} ${splitedTmp[5]} ${splitedTmp[4]}`,
+                    type: `${splitedTmp[0]}`, volumes: splitedTmp[6]
+                }
+            });
+            this.setState({listData: {sortedData: tmpReadyList}})
+        }
+    };
     createBackup = () => {
         this.setState({backupReady: false});
         this.props.socket.emit("createBackup")
     };
 
     sort = clickedColumn => () => {
-        const {column, sortedData, direction} = this.state.sortedData;
+        const {column, sortedData, direction} = this.state.listData;
         console.log(column);
         if (column !== clickedColumn) {
             this.setState({
-                sortedData: {
+                listData: {
                     column: clickedColumn,
                     sortedData: _.sortBy(sortedData, [clickedColumn]),
                     direction: 'ascending',
@@ -48,7 +48,7 @@ class BackupPanel extends Component {
             return
         }
         this.setState({
-            sortedData: {
+            listData: {
                 column: clickedColumn,
                 sortedData: sortedData.reverse(),
                 direction: direction === 'ascending' ? 'descending' : 'ascending',
@@ -72,7 +72,7 @@ class BackupPanel extends Component {
     };
 
     render() {
-        const {column, sortedData, direction} = this.state.sortedData;
+        const {column, sortedData, direction} = this.state.listData;
         return (
             <Container>
                 <Grid>

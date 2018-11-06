@@ -1,12 +1,13 @@
 import React, {Component} from "react";
-import {Header, Container, Tab, Button, Dropdown, Grid, TextArea, Form} from "semantic-ui-react"
+import {Header, Container, Tab, Button, Dropdown, Grid, TextArea, Form, Modal} from "semantic-ui-react"
 import 'semantic-ui-css/semantic.min.css';
 import *  as _ from "lodash";
 
 class RestorePanel extends Component {
 
     static defaultProps = {
-        backupList: null
+        backupList: null,
+
     };
 
     // eslint-disable-next-line
@@ -15,14 +16,20 @@ class RestorePanel extends Component {
         this.state = {
             restoreLogs: '',
             selectedBackup: -1,
-            restoreReady:true
+            restoreReady: true,
+            passphrase: "",
+            modal: true,
+
         };
         this.props.socket.on("log", (data) => {
             this.setState({restoreLogs: this.state.restoreLogs + "\n" + data})
         });
-        this.props.socket.on("restoreComplete",()=>{
-            this.setState({restoreReady:true});
+        this.props.socket.on("restoreComplete", () => {
+            this.setState({restoreReady: true});
         });
+        this.props.socket.on("enterPassphrase", () => {
+            this.setState({modal: !this.state.modal})
+        })
     }
 
     setBackupForRestore = (event, data) => {
@@ -32,11 +39,23 @@ class RestorePanel extends Component {
     restoreBackup = () => {
         if (this.state.selectedBackup !== -1)
             this.props.socket.emit("restore", this.state.selectedBackup);
-            this.setState({restoreReady:false})
+        this.setState({restoreReady: false})
     };
 
     clearLog = () => {
         this.setState({restoreLogs: ''});
+    };
+
+    sendPasspharse = () => {
+        console.log(this.state.passphrase);
+        if (this.state.passphrase!=="") {
+            this.props.socket.emit("sendPasspharse", this.state.passphrase);
+            this.setState({modal:!this.state.modal})
+        }
+    };
+
+    enterPasspharse = (event, {name, value}) => {
+        this.setState({passphrase: value})
     };
 
     render() {
@@ -75,7 +94,8 @@ class RestorePanel extends Component {
                             <Form>
                                 <Form.Field>
                                     <label>2. Start restore backup</label>
-                                    <Button disabled={!this.state.restoreReady} onClick={this.restoreBackup} fluid>Restore</Button>
+                                    <Button disabled={!this.state.restoreReady} onClick={this.restoreBackup}
+                                            fluid>Restore</Button>
                                 </Form.Field></Form>
                         </Grid.Column>
                     </Grid.Row>
@@ -92,14 +112,31 @@ class RestorePanel extends Component {
                             </Form>
                         </Grid.Column>
                         <Grid.Column width={3}>
-                            <Form.Field style={{marginTop:"2rem"}} >
+                            <Form.Field style={{marginTop: "2rem"}}>
                                 <label/>
-                                <Button  disabled={this.state.restoreLogs === ''} onClick={this.clearLog} fluid>Clear
+                                <Button disabled={this.state.restoreLogs === ''} onClick={this.clearLog} fluid>Clear
                                     logs</Button>
                             </Form.Field>
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>
+                <Modal size="mini" open={this.state.modal}>
+                    <Modal.Header>Input key passpharse</Modal.Header>
+                    <Modal.Content>
+                        <Form>
+                            <Form.Field>
+                                <label>Passpharse</label>
+                                <Form.Input required={true} type="text" value={this.state.passphrase} name='passpharse'
+                                            onChange={this.enterPasspharse}/>
+                            </Form.Field>
+                        </Form>
+                    </Modal.Content>
+                    <Modal.Actions>
+                        <Button negative>Cancel</Button>
+                        <Button onClick={this.sendPasspharse} positive icon='mail' labelPosition='right'
+                                content='Send'/>
+                    </Modal.Actions>
+                </Modal>
             </Container>
         );
     }

@@ -7,7 +7,9 @@ let execWrapper = {
 
         getBackupsList(res) {
             let command = ['list'];
-            return this.ajaxExec(command).then((stdout, stderr)=>{return this.sliceBackupList(stdout, res)});
+            return this.ajaxExec(command).then((stdout, stderr) => {
+                return this.sliceBackupList(stdout, res)
+            });
         },
         createBackup(io) {
             let command = ["backup"];
@@ -31,8 +33,15 @@ let execWrapper = {
         },
         socketExec(command, io) {
             let logBody = "";
-            let spawnedProcess = spawn(command.join(" "), {stdio: 'pipe'});
+            let spawnedProcess = spawn(command.join(" "), {stdio: ['pipe', 'pipe', 'pipe']});
+            spawn.stdin.setEncoding('utf-8');
+
+            io.on("sendPasspharse", data => {
+                spawn.stdin.write(data.trim())
+            });
+
             spawnedProcess.stdout.on("data", data => {
+                data.find("passphrase") ? io.emit("enterPassphrase") : null;
                 logBody += data.toString();
                 io.emit("log", logBody)
             });

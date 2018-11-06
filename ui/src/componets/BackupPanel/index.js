@@ -11,24 +11,33 @@ class BackupPanel extends Component {
             backupList: '',
             backupLogs: "",
             backupReady: true,
-            listData: {column: null, sortedData: null, direction: null},
+            listData: {},
         };
         this.props.socket.on("backupSuccessful", () => {
             this.setState({backupReady: true})
         });
     }
+
     componentDidMount = () => {
-        if (this.props.backupList) {
-            let tmpReadyList = this.props.backupList.map((elem, index, array) => {
-                let splitedTmp = _.compact(elem.text.trim().split(" "));
-                return {
-                    date: `${splitedTmp[3]} ${splitedTmp[2]} ${splitedTmp[5]} ${splitedTmp[4]}`,
-                    type: `${splitedTmp[0]}`, volumes: splitedTmp[6]
-                }
-            });
-            this.setState({listData: {sortedData: tmpReadyList}})
-        }
+        if (this.props.backupList) this.setState({listData: {sortedData: this.makeList(this.props.backupList)}});
     };
+
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.backupList) {
+            this.setState({listData: {sortedData: this.makeList(nextProps.backupList)}});
+        }
+    }
+
+    makeList = (backupList) => {
+        return backupList.map((elem, index, array) => {
+            let splitedTmp = _.compact(elem.text.trim().split(" "));
+            return {
+                date: `${splitedTmp[3]} ${splitedTmp[2]} ${splitedTmp[5]} ${splitedTmp[4]}`,
+                type: `${splitedTmp[0]}`, volumes: splitedTmp[6]
+            }
+        });
+    }
+
     createBackup = () => {
         this.setState({backupReady: false});
         this.props.socket.emit("createBackup")
@@ -106,7 +115,8 @@ class BackupPanel extends Component {
                                             </Table.Row>
                                         </Table.Header>
                                         <Table.Body>
-                                            {this.renderTable(sortedData)}
+                                            {sortedData ? this.renderTable(sortedData) : <Table.Row>
+                                                <Table.Cell>Not any backup data yet</Table.Cell></Table.Row>}
                                         </Table.Body>
                                     </Table>
                                 </Form.Field>

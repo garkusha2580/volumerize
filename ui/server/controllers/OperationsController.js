@@ -22,7 +22,8 @@ let execWrapper = {
             }
             this.socketExec(command, io)
         },
-        sliceBackupList(data, res) {
+        sliceBackupList(stream, res) {
+            let data = stream.stdout.toString();
             let beginPos = data.search("Num volumes:");
             data = data.slice(beginPos);
             let endPos = data.search("-------------------------");

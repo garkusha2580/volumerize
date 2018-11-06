@@ -23,7 +23,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "serve": "pm2 start /app/server/app.js",
+    "serve": "pm2 start node /app/server/app.js",
     "volumerize": "/opt/volumerize/docker-entrypoint.sh volumerize",
     "startall": "run-p serve volumerize"
   },

@@ -18,7 +18,7 @@ class RestorePanel extends Component {
             selectedBackup: -1,
             restoreReady: true,
             passphrase: "",
-            modal: true,
+            modal: false,
 
         };
         this.props.socket.on("log", (data) => {
@@ -132,7 +132,7 @@ class RestorePanel extends Component {
                         </Form>
                     </Modal.Content>
                     <Modal.Actions>
-                        <Button negative>Cancel</Button>
+                        <Button negative onClick={()=>{this.setState({modal:false})}} >Cancel</Button>
                         <Button onClick={this.sendPasspharse} positive icon='mail' labelPosition='right'
                                 content='Send'/>
                     </Modal.Actions>

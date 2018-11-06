@@ -3,6 +3,7 @@ const moment = require("moment");
 const util = require('util');
 const spawn = require("child_process").spawn;
 const exec = util.promisify(require('child_process').exec);
+const moment = require("moment");
 let execWrapper = {
 
         getBackupsList(res) {
@@ -12,15 +13,14 @@ let execWrapper = {
             });
         },
         createBackup(io) {
-            let command = ["backup"];
-            this.socketExec(command, io)
+            this.socketExec("backup", io)
         },
         restoreBackup({time, io}) {
-            let command = ['restore', '--dry-run'];
+            let args = ['--dry-run'];
             if (time) {
-                _.concat(command, "-t", moment(time.trim(), "YYYY-MMM-DDTHH:mm:ss").unix());
+                _.concat(args, "-t", moment(time.trim(), "YYYY-MMM-DDTHH:mm:ss").unix());
             }
-            this.socketExec(command, io)
+            this.socketExec("restore", io, args)
         },
         sliceBackupList(stream, res) {
             let data = stream.stdout.toString();
@@ -32,33 +32,32 @@ let execWrapper = {
             data = data.slice(firstPost + 3);
             return data
         },
-        socketExec(command, io) {
-            let logBody = "";
-            let spawnedProcess = spawn(command.join(" "), {stdio: ['pipe', 'pipe', 'pipe']});
-            spawn.stdin.setEncoding('utf-8');
-
+        socketExec(command, io, args) {
+            let spawnedProcess = spawn(command, args, {stdio: 'pipe'});
             io.on("sendPasspharse", data => {
                 spawn.stdin.write(data.trim())
             });
-
             spawnedProcess.stdout.on("data", data => {
-                data.find("passphrase") ? io.emit("enterPassphrase") : null;
-                logBody += data.toString();
-                io.emit("log", logBody)
+                data.toString().find("passphrase") !== -1 ? io.emit("enterPassphrase") : null;
+                this.emitLogs(io, data)
             });
             spawnedProcess.stderr.on("data", data => {
-                logBody += data.toString();
-                io.emit("log", logBody)
+                this.emitLogs(io, data)
             });
             spawnedProcess.on("error", err => {
-                logBody += err.toString();
-                io.emit("log", logBody)
+                this.emitLogs(io, err);
+                io.emit("error" + command.capitalize())
             });
             spawnedProcess.on("exit", code => {
-                logBody += "Exit with code: " + code.toString();
-                io.emit("log", logBody)
+                io.emit("log", "\n");
+                io.emit(command.toLowerCase()+"Complete", code)
             });
 
+        },
+        emitLogs(io, data) {
+            io.emit("log", data.toString().trim().split("\n").map((value, index, array) => {
+                return moment().format("DD/MM/YYYY HH:mm:ss") + " " + value
+            }).join("\n").trim())
         },
         async ajaxExec(command) {
             return await exec(command.join(" "))

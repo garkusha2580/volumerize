@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import {Header, Container, Tab, Button} from "semantic-ui-react"
+import {Header, Container, Tab} from "semantic-ui-react"
 import 'semantic-ui-css/semantic.min.css';
 import * as axios from 'axios';
 import io from "socket.io-client";
@@ -29,14 +29,12 @@ class MainPanel extends Component {
             });
         }
     };
-    runRestore = () => {
-        this.state.emit("restoreStart",);
-    };
     closeSocket = () => {
         this.setState({socket: false});
     };
 
     render() {
+
         let panel = [
             {
                 menuItem: 'Backup',

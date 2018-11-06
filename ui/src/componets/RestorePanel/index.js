@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import {Header, Container, Tab, Button, Dropdown, Grid, TextArea, Form, Modal} from "semantic-ui-react"
+import {Header, Container, Button, Dropdown, Grid, TextArea, Form, Modal} from "semantic-ui-react"
 import 'semantic-ui-css/semantic.min.css';
 import *  as _ from "lodash";
 
@@ -48,9 +48,9 @@ class RestorePanel extends Component {
 
     sendPasspharse = () => {
         console.log(this.state.passphrase);
-        if (this.state.passphrase!=="") {
+        if (this.state.passphrase !== "") {
             this.props.socket.emit("sendPasspharse", this.state.passphrase);
-            this.setState({modal:!this.state.modal})
+            this.setState({modal: !this.state.modal})
         }
     };
 
@@ -132,7 +132,9 @@ class RestorePanel extends Component {
                         </Form>
                     </Modal.Content>
                     <Modal.Actions>
-                        <Button negative onClick={()=>{this.setState({modal:false})}} >Cancel</Button>
+                        <Button negative onClick={() => {
+                            this.setState({modal: false})
+                        }}>Cancel</Button>
                         <Button onClick={this.sendPasspharse} positive icon='mail' labelPosition='right'
                                 content='Send'/>
                     </Modal.Actions>

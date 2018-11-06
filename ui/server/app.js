@@ -10,17 +10,9 @@ io.on('connection', (socket) => {
     console.log("connected");
     socket.on("restore", (time) => {
         exec.restoreBackup({time, io})
-            .catch(() => {
-            console.log("restoreError");
-            socket.emit("restoreError")
-        });
     });
     socket.on("backup", (time) => {
         exec.createBackup({time, io})
-            .catch(() => {
-            console.log("backupError");
-            socket.emit("backupError")
-        })
     });
     socket.on("disconnect",()=>{
         console.log("socket closed");

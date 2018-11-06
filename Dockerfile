@@ -160,6 +160,5 @@ USER root
 WORKDIR /etc/volumerize
 VOLUME ["/volumerize-cache"]
 COPY imagescripts/*.sh /opt/volumerize/
-RUN pm2 start /app/server/app.js
-ENTRYPOINT ["/opt/volumerize/docker-entrypoint.sh"]
-CMD ["volumerize"]
+#ENTRYPOINT ["/opt/volumerize/docker-entrypoint.sh"]
+CMD ["npm run startall"]

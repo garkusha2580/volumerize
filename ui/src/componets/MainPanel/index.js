@@ -20,7 +20,7 @@ class MainPanel extends Component {
 
     componentWillMount = () => {
         if (!this.state.backupList) {
-            axios.get(`http://localhost:5001/docker`,{ username: 'admin', password: 'admin'}).then(res => {
+            axios.get(`/docker`).then(res => {
                 this.setState({
                     backupList: res.data.trim().split("\n").map((value, index, array) => {
                         return {value: index, text: value}

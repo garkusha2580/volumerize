@@ -49,12 +49,12 @@ class MainPanel extends Component {
             }
         ];
         return (
-            <Beforeunload onBeforeunload={this.closeSocket}>
+            //<Beforeunload onBeforeunload={this.closeSocket}>
                 <Container>
                     <Header size="huge" style={{marginTop: "1rem"}} textAlign="center">Volumerize UI panel</Header>
                     <Tab panes={panel}/>
                 </Container>
-            </Beforeunload>
+            // </Beforeunload>
         );
     }
 }

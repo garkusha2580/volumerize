@@ -27,6 +27,9 @@ class RestorePanel extends Component {
         this.props.socket.on("restoreComplete", () => {
             this.setState({restoreReady: true});
         });
+        this.props.socket.on("restoreError", () => {
+            this.setState({restoreReady: true});
+        });
         this.props.socket.on("enterPassphrase", () => {
             this.setState({modal: !this.state.modal})
         })

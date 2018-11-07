@@ -13,7 +13,10 @@ class BackupPanel extends Component {
             backupReady: true,
             listData: {},
         };
-        this.props.socket.on("backupSuccessful", () => {
+        this.props.socket.on("backupComplete", () => {
+            this.setState({backupReady: true})
+        });
+        this.props.socket.on("backupError", () => {
             this.setState({backupReady: true})
         });
     }

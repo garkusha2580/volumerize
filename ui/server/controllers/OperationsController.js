@@ -5,6 +5,8 @@ const spawn = require("child_process").spawn;
 const exec = util.promisify(require('child_process').exec);
 let execWrapper = {
 
+        state: "ready",
+
         getBackupsList(res) {
             let command = ['list'];
             return this.ajaxExec(command).then((stdout, stderr) => {
@@ -12,7 +14,8 @@ let execWrapper = {
             });
         },
         createBackup(io) {
-            this.socketExec("backup", io)
+            let args = ['--dry-run'];
+            this.socketExec("backup", io, args)
         },
         restoreBackup({time, io}) {
             let args = ['--dry-run'];
@@ -37,21 +40,24 @@ let execWrapper = {
                 spawn.stdin.write(data.trim())
             });
             spawnedProcess.stdout.on("data", data => {
+                this.setProgress();
                 data.toString().search("passphrase") !== -1 ? io.emit("enterPassphrase") : null;
                 this.emitLogs(io, data)
             });
             spawnedProcess.stderr.on("data", data => {
+                this.setProgress();
                 this.emitLogs(io, data)
             });
             spawnedProcess.on("error", err => {
+                this.setReady();
                 this.emitLogs(io, err);
-                io.emit("error" + command.capitalize())
+                io.emit(command.lowerCase() + "Error")
             });
             spawnedProcess.on("exit", code => {
+                this.setReady();
                 io.emit("log", "\n");
-                io.emit(command.toLowerCase()+"Complete", code)
+                io.emit(command.toLowerCase() + "Complete", code)
             });
-
         },
         emitLogs(io, data) {
             io.emit("log", data.toString().trim().split("\n").map((value, index, array) => {
@@ -60,7 +66,13 @@ let execWrapper = {
         },
         async ajaxExec(command) {
             return await exec(command.join(" "))
-        }
+        },
+        setReady() {
+            this.state = "ready"
+        },
+        setProgress() {
+            this.state = "progress"
+        },
     }
 ;
 

@@ -8,10 +8,10 @@ let exec = require("./controllers/OperationsController");
 let io = require('socket.io')(http);
 io.on('connection', (socket) => {
     console.log("connected");
-    socket.on("restore", (time) => {
+    socket.on("createRestore", (time) => {
         exec.restoreBackup({time, io})
     });
-    socket.on("backup", (time) => {
+    socket.on("createBackup", (time) => {
         exec.createBackup({time, io})
     });
     socket.on("disconnect",()=>{

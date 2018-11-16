@@ -21,7 +21,7 @@ class RestorePanel extends Component {
             modal: false,
 
         };
-        this.props.socket.on("log", (data) => {
+        this.props.socket.on("restoreLog", (data) => {
             this.setState({restoreLogs: this.state.restoreLogs + "\n" + data})
         });
         this.props.socket.on("restoreComplete", () => {
@@ -41,7 +41,7 @@ class RestorePanel extends Component {
 
     restoreBackup = () => {
         if (this.state.selectedBackup !== -1)
-            this.props.socket.emit("restore", this.state.selectedBackup);
+            this.props.socket.emit("createRestore", this.state.selectedBackup);
         this.setState({restoreReady: false})
     };
 

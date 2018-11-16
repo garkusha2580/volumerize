@@ -13,6 +13,9 @@ class BackupPanel extends Component {
             backupReady: true,
             listData: {},
         };
+        this.props.socket.on("backupLog", (data) => {
+            this.setState({backupLogs: this.state.backupLogs + "\n" + data})
+        });
         this.props.socket.on("backupComplete", () => {
             this.setState({backupReady: true})
         });
@@ -39,8 +42,10 @@ class BackupPanel extends Component {
                 type: `${splitedTmp[0]}`, volumes: splitedTmp[6]
             }
         });
-    }
-
+    };
+    clearLog = () => {
+        this.setState({backupLogs: ''});
+    };
     createBackup = () => {
         this.setState({backupReady: false});
         this.props.socket.emit("createBackup")
@@ -141,7 +146,7 @@ class BackupPanel extends Component {
                             <Form>
                                 <Form.Field>
                                     <label>3. Look at backup process</label>
-                                    <TextArea readOnly style={{height: 550, resize: "none"}}/>
+                                    <TextArea readOnly  value={this.state.backupLogs} style={{height: 550, resize: "none"}}/>
 
                                 </Form.Field>
                             </Form>

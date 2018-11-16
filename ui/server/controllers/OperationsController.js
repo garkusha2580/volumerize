@@ -13,9 +13,9 @@ let execWrapper = {
                 return this.sliceBackupList(stdout, res)
             });
         },
-        createBackup(io) {
+        createBackup(obj) {
             let args = ['--dry-run'];
-            this.socketExec("backup", io, args)
+            this.socketExec("backup", obj.io, args)
         },
         restoreBackup({time, io}) {
             let args = ['--dry-run'];
@@ -41,16 +41,20 @@ let execWrapper = {
             });
             spawnedProcess.stdout.on("data", data => {
                 this.setProgress();
-                data.toString().search("passphrase") !== -1 ? io.emit("enterPassphrase") : null;
-                this.emitLogs(io, data)
+                if (data.toString().search("passphrase") !== -1) {
+
+                    io.emit("enterPassphrase");
+                }
+
+                this.emitLogs(io, data,command)
             });
             spawnedProcess.stderr.on("data", data => {
                 this.setProgress();
-                this.emitLogs(io, data)
+                this.emitLogs(io, data,command)
             });
             spawnedProcess.on("error", err => {
                 this.setReady();
-                this.emitLogs(io, err);
+                this.emitLogs(io, err,command);
                 io.emit(command.lowerCase() + "Error")
             });
             spawnedProcess.on("exit", code => {
@@ -59,8 +63,8 @@ let execWrapper = {
                 io.emit(command.toLowerCase() + "Complete", code)
             });
         },
-        emitLogs(io, data) {
-            io.emit("log", data.toString().trim().split("\n").map((value, index, array) => {
+        emitLogs(io, data,command) {
+            io.emit(command+"Log", data.toString().trim().split("\n").map((value, index, array) => {
                 return moment().format("DD/MM/YYYY HH:mm:ss") + " " + value
             }).join("\n").trim())
         },

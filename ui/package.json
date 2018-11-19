@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "axios": "^0.18.0",
+    "debug-stream": "^3.0.1",
     "express": "^4.16.4",
     "express-basic-auth": "^1.1.6",
     "http-auth": "^3.2.3",

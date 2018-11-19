@@ -50,11 +50,9 @@ class RestorePanel extends Component {
     };
 
     sendPasspharse = () => {
-        console.log(this.state.passphrase);
-        if (this.state.passphrase !== "") {
-            this.props.socket.emit("sendPasspharse", this.state.passphrase);
-            this.setState({modal: !this.state.modal})
-        }
+        this.setState({modal: !this.state.modal});
+        this.props.socket.emit("sendPasspharse", this.state.passphrase);
+        console.log("send pass")
     };
 
     enterPasspharse = (event, {name, value}) => {
@@ -129,7 +127,7 @@ class RestorePanel extends Component {
                         <Form>
                             <Form.Field>
                                 <label>Passpharse</label>
-                                <Form.Input required={true} type="text" value={this.state.passphrase} name='passpharse'
+                                <Form.Input type="text" value={this.state.passphrase} name='passpharse'
                                             onChange={this.enterPasspharse}/>
                             </Form.Field>
                         </Form>

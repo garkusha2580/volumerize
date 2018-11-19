@@ -3,26 +3,33 @@ const moment = require("moment");
 const util = require('util');
 const spawn = require("child_process").spawn;
 const exec = util.promisify(require('child_process').exec);
+
 let execWrapper = {
-
         state: "ready",
-
+        args: [],
+        command: "",
         getBackupsList(res) {
-            let command = ['list'];
-            return this.ajaxExec(command).then((stdout, stderr) => {
+            this.command = 'list';
+            return this.ajaxExec(this.command).then((stdout, stderr) => {
                 return this.sliceBackupList(stdout, res)
             });
         },
         createBackup(obj) {
-            let args = ['--dry-run'];
-            this.socketExec("backup", obj.io, args)
+            this.command = "backup";
+            this.args=[];
+            this.socketExec(this.command, obj.io, this.args)
         },
         restoreBackup({time, io}) {
-            let args = ['--dry-run'];
+            this.command = "restore";
             if (time) {
-                _.concat(args, "-t", moment(time.trim(), "YYYY-MMM-DDTHH:mm:ss").unix());
+                _.concat(this.args, "-t", moment(time.trim(), "YYYY-MMM-DDTHH:mm:ss").unix());
             }
-            this.socketExec("restore", io, args)
+            if (process.env.VOLUMERIZE_GPG_PRIVATE_KEY && !process.env.PASSPHRASE) {
+                io.emit("enterPassphrase");
+            } else {
+                this.socketExec(this.command, io, this.args)
+            }
+
         },
         sliceBackupList(stream, res) {
             let data = stream.stdout.toString();
@@ -36,25 +43,17 @@ let execWrapper = {
         },
         socketExec(command, io, args) {
             let spawnedProcess = spawn(command, args, {stdio: 'pipe'});
-            io.on("sendPasspharse", data => {
-                spawn.stdin.write(data.trim())
-            });
             spawnedProcess.stdout.on("data", data => {
                 this.setProgress();
-                if (data.toString().search("passphrase") !== -1) {
-
-                    io.emit("enterPassphrase");
-                }
-
-                this.emitLogs(io, data,command)
+                this.emitLogs(io, data, command)
             });
             spawnedProcess.stderr.on("data", data => {
                 this.setProgress();
-                this.emitLogs(io, data,command)
+                this.emitLogs(io, data, command)
             });
             spawnedProcess.on("error", err => {
                 this.setReady();
-                this.emitLogs(io, err,command);
+                this.emitLogs(io, err, command);
                 io.emit(command.lowerCase() + "Error")
             });
             spawnedProcess.on("exit", code => {
@@ -63,13 +62,13 @@ let execWrapper = {
                 io.emit(command.toLowerCase() + "Complete", code)
             });
         },
-        emitLogs(io, data,command) {
-            io.emit(command+"Log", data.toString().trim().split("\n").map((value, index, array) => {
+        emitLogs(io, data, command) {
+            io.emit(command + "Log", data.toString().trim().split("\n").map((value, index, array) => {
                 return moment().format("DD/MM/YYYY HH:mm:ss") + " " + value
             }).join("\n").trim())
         },
         async ajaxExec(command) {
-            return await exec(command.join(" "))
+            return await exec(command)
         },
         setReady() {
             this.state = "ready"

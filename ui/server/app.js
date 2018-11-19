@@ -7,24 +7,34 @@ let authPolicy = require("./controllers/PolicyController");
 let exec = require("./controllers/OperationsController");
 let io = require('socket.io')(http);
 io.on('connection', (socket) => {
-    console.log("connected");
+    console.log("socket open");
     socket.on("createRestore", (time) => {
-        exec.restoreBackup({time, io})
+        try {
+            exec.restoreBackup({time, io})
+        }
+        catch (e) {
+            console.log(e)
+        }
     });
     socket.on("createBackup", (time) => {
-        exec.createBackup({time, io})
+        try {
+            exec.createBackup({time, io})
+
+        } catch (e) {
+            console.log(e)
+        }
     });
     socket.on("disconnect", () => {
         console.log("socket closed");
     });
-    socket.on("sendPasspharse", data => {
+    socket.on("sendPassphrase", data => {
         process.env.PASSPHRASE = data.trim();
-        console.log(exec.command);
         exec.socketExec(exec.command, io, exec.args);
     });
-});
-process.stdout.on('message', data => {
-    console.log("ddd");
+    socket.on("getAppState", () => {
+        socket.emit("appState", exec.state)
+    })
+
 });
 app.use(auth.connect(authPolicy.AuthPolicy));
 app.use(express.static(path.join(__dirname, "../build")));

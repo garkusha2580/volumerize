@@ -1,12 +1,12 @@
 import React, {Component} from "react";
-import {Header, Container, Button,  Grid, TextArea, Form, Table} from "semantic-ui-react"
+import {Header, Container, Button, Grid, TextArea, Form, Table} from "semantic-ui-react"
 import 'semantic-ui-css/semantic.min.css';
 import *  as _ from "lodash";
-
 
 class BackupPanel extends Component {
     constructor(props) {
         super(props);
+        console.log(props);
         this.state = {
             backupList: '',
             backupLogs: "",
@@ -14,7 +14,8 @@ class BackupPanel extends Component {
             listData: {},
         };
         this.props.socket.on("backupLog", (data) => {
-            this.setState({backupLogs: this.state.backupLogs + "\n" + data})
+            this.setState({backupLogs: this.state.backupLogs + "\n" + data});
+            localStorage.setItem("backupLogs", this.state.backupLogs);
         });
         this.props.socket.on("backupComplete", () => {
             this.setState({backupReady: true})
@@ -22,16 +23,22 @@ class BackupPanel extends Component {
         this.props.socket.on("backupError", () => {
             this.setState({backupReady: true})
         });
+        this.props.socket.emit("getAppState");
+
     }
 
     componentDidMount = () => {
-        if (this.props.backupList) this.setState({listData: {sortedData: this.makeList(this.props.backupList)}});
+        this.setState({backupLogs: localStorage.getItem("backupLogs") ? localStorage.getItem("backupLogs") : ""});
+        this.setState({listData: this.props.backupList ? {sortedData: this.makeList(this.props.backupList)} : ""});
     };
 
     componentWillReceiveProps(nextProps) {
+        let tmpObj = {};
         if (nextProps.backupList) {
-            this.setState({listData: {sortedData: this.makeList(nextProps.backupList)}});
+            tmpObj.listData = {sortedData: this.makeList(nextProps.backupList)}
         }
+        tmpObj.backupReady = nextProps.appState;
+        this.setState(tmpObj)
     }
 
     makeList = (backupList) => {
@@ -45,6 +52,8 @@ class BackupPanel extends Component {
     };
     clearLog = () => {
         this.setState({backupLogs: ''});
+        localStorage.setItem("backupLogs", "");
+
     };
     createBackup = () => {
         this.setState({backupReady: false});
@@ -146,7 +155,8 @@ class BackupPanel extends Component {
                             <Form>
                                 <Form.Field>
                                     <label>3. Look at backup process</label>
-                                    <TextArea readOnly  value={this.state.backupLogs} style={{height: 550, resize: "none"}}/>
+                                    <TextArea readOnly value={this.state.backupLogs}
+                                              style={{height: 550, resize: "none"}}/>
 
                                 </Form.Field>
                             </Form>
@@ -164,5 +174,6 @@ class BackupPanel extends Component {
         )
     }
 }
+
 
 export default BackupPanel;

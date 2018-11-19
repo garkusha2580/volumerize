@@ -42,6 +42,7 @@ let execWrapper = {
             return data
         },
         socketExec(command, io, args) {
+
             let spawnedProcess = spawn(command, args, {stdio: 'pipe'});
             spawnedProcess.stdout.on("data", data => {
                 this.setProgress();
@@ -54,12 +55,16 @@ let execWrapper = {
             spawnedProcess.on("error", err => {
                 this.setReady();
                 this.emitLogs(io, err, command);
-                io.emit(command.lowerCase() + "Error")
+                io.emit(command.lowerCase() + "Error");
+                io.emit("appState", this.state)
+
             });
             spawnedProcess.on("exit", code => {
                 this.setReady();
                 io.emit("log", "\n");
-                io.emit(command.toLowerCase() + "Complete", code)
+                io.emit(command.toLowerCase() + "Complete", code);
+                io.emit("appState", this.state)
+
             });
         },
         emitLogs(io, data, command) {
@@ -71,10 +76,10 @@ let execWrapper = {
             return await exec(command)
         },
         setReady() {
-            this.state = "ready"
+            this.state = true
         },
         setProgress() {
-            this.state = "progress"
+            this.state = false
         },
     }
 ;

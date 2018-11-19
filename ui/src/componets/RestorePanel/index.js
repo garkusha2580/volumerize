@@ -21,8 +21,12 @@ class RestorePanel extends Component {
             modal: false,
 
         };
+        this.props.socket.emit("getAppState");
         this.props.socket.on("restoreLog", (data) => {
-            this.setState({restoreLogs: this.state.restoreLogs + "\n" + data})
+            if (data) {
+                this.setState({restoreLogs: this.state.restoreLogs + "\n" + data});
+                localStorage.setItem("restoreLogs", this.state.restoreLogs);
+            }
         });
         this.props.socket.on("restoreComplete", () => {
             this.setState({restoreReady: true});
@@ -33,6 +37,19 @@ class RestorePanel extends Component {
         this.props.socket.on("enterPassphrase", () => {
             this.setState({modal: !this.state.modal})
         })
+    }
+
+    componentDidMount = () => {
+        this.setState({restoreLogs: localStorage.getItem("restoreLogs") ? localStorage.getItem("restoreLogs") : ""});
+    };
+
+    componentWillReceiveProps(nextProps) {
+        let tmpObj = {};
+        if (nextProps.backupList) {
+            tmpObj.restoreReady = nextProps.appState;
+        }
+        tmpObj.restoreLogs = nextProps.restoreLogs;
+        this.setState(tmpObj)
     }
 
     setBackupForRestore = (event, data) => {
@@ -47,11 +64,12 @@ class RestorePanel extends Component {
 
     clearLog = () => {
         this.setState({restoreLogs: ''});
+        localStorage.setItem("restoreLogs", "");
     };
 
     sendPasspharse = () => {
         this.setState({modal: !this.state.modal});
-        this.props.socket.emit("sendPasspharse", this.state.passphrase);
+        this.props.socket.emit("sendPassphrase", this.state.passphrase);
         console.log("send pass")
     };
 

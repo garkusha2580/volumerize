@@ -14,7 +14,6 @@ class RestorePanel extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            restoreLogs: '',
             selectedBackup: -1,
             restoreReady: true,
             passphrase: "",
@@ -22,12 +21,12 @@ class RestorePanel extends Component {
 
         };
         this.props.socket.emit("getAppState");
-        this.props.socket.on("restoreLog", (data) => {
-            if (data) {
-                this.setState({restoreLogs: this.state.restoreLogs + "\n" + data});
-                localStorage.setItem("restoreLogs", this.state.restoreLogs);
-            }
-        });
+        // this.props.socket.on("restoreLog", (data) => {
+        //     if (data) {
+        //         this.setState({restoreLogs: this.state.restoreLogs + "\n" + data});
+        //         localStorage.setItem("restoreLogs", this.state.restoreLogs);
+        //     }
+        // });
         this.props.socket.on("restoreComplete", () => {
             this.setState({restoreReady: true});
         });
@@ -39,15 +38,13 @@ class RestorePanel extends Component {
         })
     }
 
-    componentDidMount = () => {
-        this.setState({restoreLogs: localStorage.getItem("restoreLogs") ? localStorage.getItem("restoreLogs") : ""});
+    componentWillMount = () => {
+        this.setState({restoreReady: this.props.appState})
+        // this.setState({restoreLogs: localStorage.getItem("restoreLogs") ? localStorage.getItem("restoreLogs") : ""});
     };
 
     componentWillReceiveProps(nextProps) {
         let tmpObj = {};
-        if (nextProps.backupList) {
-            tmpObj.restoreReady = nextProps.appState;
-        }
         tmpObj.restoreLogs = nextProps.restoreLogs;
         this.setState(tmpObj)
     }
@@ -57,14 +54,14 @@ class RestorePanel extends Component {
     };
 
     restoreBackup = () => {
+        this.setState({restoreReady: false});
         if (this.state.selectedBackup !== -1)
             this.props.socket.emit("createRestore", this.state.selectedBackup);
-        this.setState({restoreReady: false})
     };
 
     clearLog = () => {
-        this.setState({restoreLogs: ''});
-        localStorage.setItem("restoreLogs", "");
+        console.log("restore clear logs");
+        this.props.parent.clearLogs("restore")
     };
 
     sendPasspharse = () => {
@@ -126,14 +123,14 @@ class RestorePanel extends Component {
                                 <Form.Field>
                                     <label>3. Look at restore process</label>
                                     <TextArea readOnly style={{height: 550, resize: "none"}}
-                                              value={this.state.restoreLogs}/>
+                                              value={this.props.logs}/>
                                 </Form.Field>
                             </Form>
                         </Grid.Column>
                         <Grid.Column width={3}>
                             <Form.Field style={{marginTop: "2rem"}}>
                                 <label/>
-                                <Button disabled={this.state.restoreLogs === ''} onClick={this.clearLog} fluid>Clear
+                                <Button disabled={this.props.logs === ''} onClick={this.clearLog} fluid>Clear
                                     logs</Button>
                             </Form.Field>
                         </Grid.Column>

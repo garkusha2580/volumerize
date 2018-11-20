@@ -14,21 +14,27 @@ class MainPanel extends Component {
             socket: io.connect(`/`),
             backupList: "",
             restoreLogs: "",
-            appState: "",
-            backupLogs:""
+            appState: true,
+            backupLogs: ""
         };
+
         this.state.socket.on("appState", (data) => {
             this.setState({appState: data})
         });
-        this.props.socket.on("backupLog", (data) => {
+        this.state.socket.on("backupLog", (data) => {
             this.setState({backupLogs: this.state.backupLogs + "\n" + data});
-            localStorage.setItem("backupLogs",  localStorage.setItem+"\n"+data);
+        });
+        this.state.socket.on("restoreLog", (data) => {
+            this.setState({restoreLogs: this.state.restoreLogs + "\n" + data});
         });
     }
 
+    clearLogs(type){
+        if (type === "backup") this.setState({backupLogs:""});
+        if (type === "restore") this.setState({restoreLogs:""});
+    }
+
     componentWillMount = () => {
-        localStorage.setItem("restoreLogs","");
-        localStorage.setItem("backupLogs","");
         if (!this.state.backupList) {
             axios.get(`/docker`).then(res => {
                 this.setState({
@@ -38,6 +44,7 @@ class MainPanel extends Component {
                 });
             });
         }
+        console.log(this.state.backupList)
     };
     closeSocket = () => {
         this.setState({socket: false});
@@ -49,14 +56,16 @@ class MainPanel extends Component {
             {
                 menuItem: 'Backup',
                 render: () => <Tab.Pane>
-                    <BackupPanel parent={this} appState={this.state.appState} backupList={this.state.backupList}
+                    <BackupPanel parent={this} appState={this.state.appState} logs={this.state.backupLogs}
+                                 backupList={this.state.backupList}
                                  socket={this.state.socket}/>
                 </Tab.Pane>
             },
             {
                 menuItem: 'Restore',
                 render: () => <Tab.Pane>
-                    <RestorePanel parent={this} appState={this.state.appState} backupList={this.state.backupList}
+                    <RestorePanel parent={this} appState={this.state.appState} logs={this.state.restoreLogs}
+                                  backupList={this.state.backupList}
                                   socket={this.state.socket}/></Tab.Pane>
             }
         ];

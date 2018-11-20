@@ -6,17 +6,11 @@ import *  as _ from "lodash";
 class BackupPanel extends Component {
     constructor(props) {
         super(props);
-        console.log(props);
         this.state = {
             backupList: '',
-            backupLogs: "",
             backupReady: true,
             listData: {},
         };
-        this.props.socket.on("backupLog", (data) => {
-            this.setState({backupLogs: this.state.backupLogs + "\n" + data});
-            localStorage.setItem("backupLogs", this.state.backupLogs);
-        });
         this.props.socket.on("backupComplete", () => {
             this.setState({backupReady: true})
         });
@@ -27,9 +21,12 @@ class BackupPanel extends Component {
 
     }
 
-    componentDidMount = () => {
-        this.setState({backupLogs: localStorage.getItem("backupLogs") ? localStorage.getItem("backupLogs") : ""});
-        this.setState({listData: this.props.backupList ? {sortedData: this.makeList(this.props.backupList)} : ""});
+    componentWillMount = () => {
+        this.setState({
+            backupReady: this.props.appState,
+            listData:{sortedData: this.props.backupList ? {sortedData: this.makeList(this.props.backupList)} : ""}
+        });
+
     };
 
     componentWillReceiveProps(nextProps) {
@@ -40,21 +37,21 @@ class BackupPanel extends Component {
         tmpObj.backupReady = nextProps.appState;
         this.setState(tmpObj)
     }
-
     makeList = (backupList) => {
-        return backupList.map((elem, index, array) => {
-            let splitedTmp = _.compact(elem.text.trim().split(" "));
-            return {
-                date: `${splitedTmp[3]} ${splitedTmp[2]} ${splitedTmp[5]} ${splitedTmp[4]}`,
-                type: `${splitedTmp[0]}`, volumes: splitedTmp[6]
-            }
-        });
+        if (backupList)
+            return backupList.map((elem, index, array) => {
+                let splitedTmp = _.compact(elem.text.trim().split(" "));
+                return {
+                    date: `${splitedTmp[3]} ${splitedTmp[2]} ${splitedTmp[5]} ${splitedTmp[4]}`,
+                    type: `${splitedTmp[0]}`, volumes: splitedTmp[6]
+                }
+            });
     };
-    clearLog = () => {
-        this.setState({backupLogs: ''});
-        localStorage.setItem("backupLogs", "");
 
+    clearLog = () => {
+        this.props.parent.clearLogs("backup")
     };
+
     createBackup = () => {
         this.setState({backupReady: false});
         this.props.socket.emit("createBackup")
@@ -155,7 +152,7 @@ class BackupPanel extends Component {
                             <Form>
                                 <Form.Field>
                                     <label>3. Look at backup process</label>
-                                    <TextArea readOnly value={this.state.backupLogs}
+                                    <TextArea readOnly value={this.props.logs}
                                               style={{height: 550, resize: "none"}}/>
 
                                 </Form.Field>
@@ -164,7 +161,7 @@ class BackupPanel extends Component {
                         <Grid.Column width={3}>
                             <Form.Field style={{marginTop: "2rem"}}>
                                 <label/>
-                                <Button disabled={this.state.backupLogs === ''} onClick={this.clearLog} fluid>Clear
+                                <Button disabled={this.props.logs === ''} onClick={this.clearLog} fluid>Clear
                                     logs</Button>
                             </Form.Field>
                         </Grid.Column>

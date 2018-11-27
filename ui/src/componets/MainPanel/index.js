@@ -15,7 +15,9 @@ class MainPanel extends Component {
             backupList: "",
             restoreLogs: "",
             appState: true,
-            backupLogs: ""
+            backupLogs: "",
+            envData: ""
+
         };
 
         this.state.socket.on("appState", (data) => {
@@ -27,31 +29,30 @@ class MainPanel extends Component {
         this.state.socket.on("restoreLog", (data) => {
             this.setState({restoreLogs: this.state.restoreLogs + "\n" + data});
         });
+        this.state.socket.on("envData", (data) => {
+            this.setState({envData: data})
+        });
+        this.state.socket.on("backupList", (data) => {
+            this.setState({
+                backupList: data.trim().split("\n").map((value, index, array) => {
+                    return {value: index, text: value}
+                })
+            })
+        })
     }
 
-    clearLogs(type){
-        if (type === "backup") this.setState({backupLogs:""});
-        if (type === "restore") this.setState({restoreLogs:""});
+    clearLogs(type) {
+        if (type === "backup") this.setState({backupLogs: ""});
+        if (type === "restore") this.setState({restoreLogs: ""});
     }
 
     componentWillMount = () => {
-        if (!this.state.backupList) {
-            axios.get(`/docker`).then(res => {
-                this.setState({
-                    backupList: res.data.trim().split("\n").map((value, index, array) => {
-                        return {value: index, text: value}
-                    })
-                });
-            });
-        }
-        console.log(this.state.backupList)
-    };
-    closeSocket = () => {
-        this.setState({socket: false});
+        this.state.socket.emit("getEnvData");
+        this.state.socket.emit("getBackupList");
     };
 
     render() {
-
+        console.log(this.state.envData);
         let panel = [
             {
                 menuItem: 'Backup',
@@ -72,7 +73,11 @@ class MainPanel extends Component {
         return (
             //<Beforeunload onBeforeunload={this.closeSocket}>
             <Container>
-                <Header size="huge" style={{marginTop: "1rem"}} textAlign="center">Volumerize UI panel</Header>
+                <Header size="huge" style={{marginTop: "1rem"}} textAlign="center">Volumerize UI
+                    <Header.Subheader>{this.state.envData.envName ?
+                       `Environment: ${this.state.envData.envName} | Stack: ${this.state.envData.stack}`
+                        : ""} </Header.Subheader>
+                </Header>
                 <Tab panes={panel}/>
             </Container>
             // </Beforeunload>

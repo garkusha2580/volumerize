@@ -21,26 +21,20 @@ class RestorePanel extends Component {
 
         };
         this.props.socket.emit("getAppState");
-        // this.props.socket.on("restoreLog", (data) => {
-        //     if (data) {
-        //         this.setState({restoreLogs: this.state.restoreLogs + "\n" + data});
-        //         localStorage.setItem("restoreLogs", this.state.restoreLogs);
-        //     }
-        // });
         this.props.socket.on("restoreComplete", () => {
             this.setState({restoreReady: true});
         });
         this.props.socket.on("restoreError", () => {
             this.setState({restoreReady: true});
         });
-        this.props.socket.on("enterPassphrase", () => {
+        this.props.socket.on("enterRestorePassphrase", () => {
             this.setState({modal: !this.state.modal})
         })
     }
 
     componentWillMount = () => {
         this.setState({restoreReady: this.props.appState})
-        // this.setState({restoreLogs: localStorage.getItem("restoreLogs") ? localStorage.getItem("restoreLogs") : ""});
+
     };
 
     componentWillReceiveProps(nextProps) {
@@ -65,13 +59,17 @@ class RestorePanel extends Component {
     };
 
     sendPasspharse = () => {
-        this.setState({modal: !this.state.modal});
         this.props.socket.emit("sendPassphrase", this.state.passphrase);
-        console.log("send pass")
+        this.setState({passphrase: "",modal: !this.state.modal,restoreReady: false});
     };
 
     enterPasspharse = (event, {name, value}) => {
         this.setState({passphrase: value})
+    };
+
+    cancelSend = () => {
+        this.props.socket.emit("cancelPasspharse", this.state.passphrase);
+        this.setState({modal: false, restoreReady: true, passphrase: "",});
     };
 
     render() {
@@ -142,16 +140,14 @@ class RestorePanel extends Component {
                         <Form>
                             <Form.Field>
                                 <label>Passpharse</label>
-                                <Form.Input type="text" value={this.state.passphrase} name='passpharse'
+                                <Form.Input type="password" value={this.state.passphrase} name='passpharse'
                                             onChange={this.enterPasspharse}/>
                             </Form.Field>
                         </Form>
                     </Modal.Content>
                     <Modal.Actions>
-                        <Button negative onClick={() => {
-                            this.setState({modal: false})
-                        }}>Cancel</Button>
-                        <Button onClick={this.sendPasspharse} positive icon='mail' labelPosition='right'
+                        <Button negative onClick={this.cancelSend}>Cancel</Button>
+                        <Button onClick={this.sendPasspharse} positive icon='send' labelPosition='right'
                                 content='Send'/>
                     </Modal.Actions>
                 </Modal>

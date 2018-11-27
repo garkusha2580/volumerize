@@ -6,42 +6,60 @@ let path = require('path');
 let authPolicy = require("./controllers/PolicyController");
 let exec = require("./controllers/OperationsController");
 let io = require('socket.io')(http);
+
 io.on('connection', (socket) => {
+
     console.log("socket open");
-    socket.on("createRestore", (time) => {
+
+    /// Creating events
+    socket.on("createRestore", async (time) => {
+        exec.restoreBackup({time, io})
+    });
+    socket.on("createBackup", async (time) => {
+        exec.createBackup({time, io})
+    });
+
+    socket.on("cancelPasspharse", async () => {
+        socket.emit("Success", exec.state)
+    });
+
+    /// Getting events
+    socket.on("getBackupList", async (refresh) => {
         try {
-            exec.restoreBackup({time, io})
+            exec.getBackupsList(io, refresh).then((data) => {
+                socket.emit("backupList", data)
+            });
         }
         catch (e) {
             console.log(e)
         }
     });
-    socket.on("createBackup", (time) => {
-        try {
-            exec.createBackup({time, io})
 
-        } catch (e) {
-            console.log(e)
-        }
+    socket.on("getAppState", async () => {
+        socket.emit("appState", exec.state)
     });
-    socket.on("disconnect", () => {
-        console.log("socket closed");
+
+    socket.on("getEnvData", async () => {
+        process.env.VOLUMERIZE_SERVICES && !exec.envData.envName
+            ? exec.getEnvData(io)
+            : socket.emit("envData", exec.envData);
     });
+
+    /// Set events
     socket.on("sendPassphrase", data => {
         process.env.PASSPHRASE = data.trim();
         exec.socketExec(exec.command, io, exec.args);
+        process.env.PASSPHRASE = "";
     });
-    socket.on("getAppState", () => {
-        socket.emit("appState", exec.state)
-    })
+
+    socket.on("disconnect", async () => {
+        console.log("socket closed");
+    });
 
 });
+
 app.use(auth.connect(authPolicy.AuthPolicy));
+
 app.use(express.static(path.join(__dirname, "../build")));
-app.get("/docker", (req, res) => {
-    res.set({'Access-Control-Allow-Origin': "*"});
-    exec.getBackupsList(res).then((data) => {
-        res.json(data)
-    })
-});
+
 http.listen(process.env.PORT || 5001, console.log("Listen server " + process.env.PORT || 5001));

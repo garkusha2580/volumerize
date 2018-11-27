@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import {Header, Container, Button, Grid, TextArea, Form, Table} from "semantic-ui-react"
+import {Header, Container, Button, Grid, TextArea, Form, Table, Modal, Dimmer, Loader} from "semantic-ui-react"
 import 'semantic-ui-css/semantic.min.css';
 import *  as _ from "lodash";
 
@@ -10,35 +10,49 @@ class BackupPanel extends Component {
             backupList: '',
             backupReady: true,
             listData: {},
+            modal: false,
+            listLoad: false
+
         };
         this.props.socket.on("backupComplete", () => {
-            this.setState({backupReady: true})
+            this.setState({backupReady: true, listLoad: true});
+            this.props.socket.emit("getBackupList", true);
         });
+
+        this.props.socket.on("backupList", () => {
+            this.setState({listLoad: false});
+        });
+
         this.props.socket.on("backupError", () => {
-            this.setState({backupReady: true})
+            this.setState({backupReady: true, listLoad: true})
         });
+
         this.props.socket.emit("getAppState");
+
 
     }
 
     componentWillMount = () => {
-        this.setState({
-            backupReady: this.props.appState,
-            listData:{sortedData: this.props.backupList ? {sortedData: this.makeList(this.props.backupList)} : ""}
-        });
+        if (this.props.backupList) {
+            this.setState({
+                backupReady: this.props.appState,
+                listData: {sortedData: this.props.backupList ? this.makeList(this.props.backupList) : ""}
+            });
+        }
 
     };
 
     componentWillReceiveProps(nextProps) {
         let tmpObj = {};
-        if (nextProps.backupList) {
+        if (!_.isEmpty(nextProps.backupList)) {
             tmpObj.listData = {sortedData: this.makeList(nextProps.backupList)}
         }
         tmpObj.backupReady = nextProps.appState;
         this.setState(tmpObj)
     }
+
     makeList = (backupList) => {
-        if (backupList)
+        if (backupList[0].text !== "") {
             return backupList.map((elem, index, array) => {
                 let splitedTmp = _.compact(elem.text.trim().split(" "));
                 return {
@@ -46,6 +60,7 @@ class BackupPanel extends Component {
                     type: `${splitedTmp[0]}`, volumes: splitedTmp[6]
                 }
             });
+        }
     };
 
     clearLog = () => {
@@ -54,12 +69,11 @@ class BackupPanel extends Component {
 
     createBackup = () => {
         this.setState({backupReady: false});
-        this.props.socket.emit("createBackup")
+        this.props.socket.emit("createBackup");
     };
 
     sort = clickedColumn => () => {
         const {column, sortedData, direction} = this.state.listData;
-        console.log(column);
         if (column !== clickedColumn) {
             this.setState({
                 listData: {
@@ -93,6 +107,7 @@ class BackupPanel extends Component {
                 <Table.Cell>Not have data</Table.Cell>
             </Table.Row>
     };
+
 
     render() {
         const {column, sortedData, direction} = this.state.listData;
@@ -131,7 +146,11 @@ class BackupPanel extends Component {
                                         <Table.Body>
                                             {sortedData ? this.renderTable(sortedData) : <Table.Row>
                                                 <Table.Cell>Not any backup data yet</Table.Cell></Table.Row>}
+                                            <Dimmer active={this.state.listLoad} inverted>
+                                                <Loader indeterminate inverted>Loading...</Loader>
+                                            </Dimmer>
                                         </Table.Body>
+
                                     </Table>
                                 </Form.Field>
                             </Form>

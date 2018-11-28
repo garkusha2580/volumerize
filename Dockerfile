@@ -151,7 +151,7 @@ ENV VOLUMERIZE_HOME=/etc/volumerize \
 RUN npm install -g pm2
 RUN mkdir /app
 WORKDIR /app
-COPY ["./ui/package.json","./ui/package-lock.json","./"]
+COPY ["./ui/package.json","./"]
 RUN npm i
 COPY ./ui/ .
 RUN npm run build

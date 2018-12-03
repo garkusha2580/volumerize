@@ -7,18 +7,23 @@ class BackupPanel extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            backupList: '',
+            backupList: null,
             backupReady: true,
             listData: {},
             modal: false,
             listLoad: false
 
         };
+        this.props.socket.on("startBackupProcess", () => {
+            this.setState({backupReady: false});
+        });
         this.props.socket.on("backupComplete", () => {
             this.setState({backupReady: true, listLoad: true});
             this.props.socket.emit("getBackupList", true);
         });
-
+        this.props.socket.on("startGetBackupList", () => {
+            this.setState({listLoad: true});
+        });
         this.props.socket.on("backupList", () => {
             this.setState({listLoad: false});
         });
@@ -26,7 +31,6 @@ class BackupPanel extends Component {
         this.props.socket.on("backupError", () => {
             this.setState({backupReady: true, listLoad: true})
         });
-
         this.props.socket.emit("getAppState");
 
 

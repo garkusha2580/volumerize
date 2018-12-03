@@ -52,7 +52,6 @@ class MainPanel extends Component {
     };
 
     render() {
-        console.log(this.state.envData);
         let panel = [
             {
                 menuItem: 'Backup',
@@ -75,7 +74,7 @@ class MainPanel extends Component {
             <Container>
                 <Header size="huge" style={{marginTop: "1rem"}} textAlign="center">Volumerize UI
                     <Header.Subheader>{this.state.envData.envName ?
-                       `Environment: ${this.state.envData.envName} | Stack: ${this.state.envData.stack}`
+                        `Environment: ${this.state.envData.envName} | Stack: ${this.state.envData.stack}`
                         : ""} </Header.Subheader>
                 </Header>
                 <Tab panes={panel}/>

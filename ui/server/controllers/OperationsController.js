@@ -31,6 +31,7 @@ let execWrapper = {
     },
 
     restoreBackup({time, io}) {
+
         this.command = "restore";
 
         if (time) {
@@ -63,21 +64,20 @@ let execWrapper = {
     },
 
      getEnvData(io) {
-        let command = "rancher";
-        let args = ["env", "--format", "json"];
-        this.socketExec(command, io, args);
+         let command = "rancher";
+         let args = ["env", "--format", "json"];
+         this.socketExec(command, io, args);
     },
 
     socketExec(command, io, args) {
+        this.setProgress();
         let spawnedProcess = spawn(command, args, {stdio: 'pipe'});
 
         spawnedProcess.stdout.on("data", data => {
-            this.setProgress();
             this.emitLogs(io, data, command)
         });
 
         spawnedProcess.stderr.on("data", data => {
-            this.setProgress();
             this.emitLogs(io, data, command)
         });
 

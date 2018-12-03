@@ -13,10 +13,12 @@ io.on('connection', (socket) => {
 
     /// Creating events
     socket.on("createRestore", async (time) => {
-        exec.restoreBackup({time, io})
+        exec.restoreBackup({time, io});
+        socket.emit("appState", exec.state)
     });
     socket.on("createBackup", async (time) => {
-        exec.createBackup({time, io})
+        exec.createBackup({time, io});
+        socket.emit("appState", exec.state)
     });
 
     socket.on("cancelPasspharse", async () => {
@@ -25,9 +27,10 @@ io.on('connection', (socket) => {
 
     /// Getting events
     socket.on("getBackupList", async (refresh) => {
+        socket.emit("startGetBackupList");
         try {
             exec.getBackupsList(io, refresh).then((data) => {
-                socket.emit("backupList", data)
+                setTimeout(()=>{socket.emit("backupList", data)},2000);
             });
         }
         catch (e) {
@@ -61,5 +64,5 @@ io.on('connection', (socket) => {
 app.use(auth.connect(authPolicy.AuthPolicy));
 
 app.use(express.static(path.join(__dirname, "../build")));
-
-http.listen(process.env.PORT || 5001, console.log("Listen server " + process.env.PORT || 5001));
+let port = process.env.PORT || 5001;
+http.listen(port, console.log("Listen server " + port));

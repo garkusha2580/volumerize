@@ -51,6 +51,8 @@ class RestorePanel extends Component {
         this.setState({restoreReady: false});
         if (this.state.selectedBackup !== -1)
             this.props.socket.emit("createRestore", this.state.selectedBackup);
+        // this.props.socket.emit("getAppState")
+
     };
 
     clearLog = () => {
@@ -60,7 +62,7 @@ class RestorePanel extends Component {
 
     sendPasspharse = () => {
         this.props.socket.emit("sendPassphrase", this.state.passphrase);
-        this.setState({passphrase: "",modal: !this.state.modal,restoreReady: false});
+        this.setState({passphrase: "", modal: !this.state.modal, restoreReady: false});
     };
 
     enterPasspharse = (event, {name, value}) => {
